@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="tl" class="h-full w-full overflow-hidden select-none">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gamit ng Pangngalan: Pagsasanay at Palaisipan - Baitang 6</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'cursive', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        pastelMint: '#D1FAE5',
+                        pastelMintDark: '#059669',
+                        pastelBlue: '#E0F2FE',
+                        pastelBlueDark: '#0284C7',
+                        pastelYellow: '#FEF3C7',
+                        pastelYellowDark: '#D97706',
+                        pastelLilac: '#F3E8FF',
+                        pastelLilacDark: '#7C3AED',
+                        pastelPink: '#FFE4E6',
+                        pastelPinkDark: '#E11D48',
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 2.2s infinite',
+                        'pop': 'pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    },
+                    keyframes: {
+                        pop: {
+                            '0%': { transform: 'scale(0.88)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(135deg, #e6f4ea 0%, #e0f2fe 50%, #fef3c7 100%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .font-display {
+            font-family: 'Fredoka', cursive, sans-serif;
+        }
+
+        /* STRICT 16:9 VIEWPORT CONTAINER FIT */
+        .game-frame {
+            width: calc(min(96vw, 96vh * (16 / 9)));
+            height: calc(min(96vh, 96vw * (9 / 16)));
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+            border: 4px solid #FFFFFF;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12), 0 10px 20px -5px rgba(0, 0, 0, 0.06);
+            border-radius: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* CARTOON BUTTON EFFECTS */
+        .cartoon-btn {
+            transition: all 0.12s ease-in-out;
+            box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.12);
+        }
+        .cartoon-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.12);
+        }
+
+        /* WORD SEARCH SCALED MATRIX */
+        #ws-grid-matrix {
+            display: grid;
+            aspect-ratio: 1 / 1;
+            height: 100%;
+            max-height: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            gap: 0.25rem;
+            padding: 0.4rem;
+            background-color: rgba(243, 232, 255, 0.75);
+            border-radius: 1.25rem;
+            border: 3px solid #DDD6FE;
+            margin: 0 auto;
+        }
+
+        .ws-tile {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.4rem;
+            font-family: 'Fredoka', cursive, sans-serif;
+            font-weight: 700;
+            user-select: none;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            border: 2px solid #C4B5FD;
+            background-color: #FFFFFF;
+            color: #4C1D95;
+            box-shadow: 0 2px 0 0 rgba(124, 58, 237, 0.12);
+            line-height: 1;
+        }
+
+        .ws-tile:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+    <!-- MAIN 16:9 GAME FRAME -->
+    <div class="game-frame">
+        
+        <header class="bg-gradient-to-r from-emerald-100 via-sky-100 to-amber-100 px-3 py-1.5 border-b-2 border-white/80 flex items-center justify-between z-20 flex-none h-[11%]">
+            <!-- Logo / Title -->
+            <div class="flex items-center gap-2 cursor-pointer" onclick="showScreen('screen-menu')">
+                <div class="w-8 h-8 rounded-xl bg-teal-400 text-white flex items-center justify-center font-display font-bold text-lg shadow-sm border border-white">
+                    🇵🇭
+                </div>
+                <div>
+                    <h1 class="font-display font-bold text-xs sm:text-sm leading-none text-teal-900">
+                        Gamit ng Pangngalan
+                    </h1>
+                    <p class="text-[9px] text-teal-700 font-semibold leading-tight">Baitang 6 - Palaisipan at Pagsasanay</p>
+                </div>
+            </div>
+
+            <!-- Header Controls & Scores -->
+            <div class="flex items-center gap-2">
+                <!-- Score Indicator -->
+                <div class="bg-white/90 px-2.5 py-0.5 rounded-full border border-amber-200 flex items-center gap-1 shadow-sm">
+                    <span class="text-amber-500 text-xs sm:text-sm">⭐</span>
+                    <span id="header-score" class="font-display font-bold text-amber-900 text-xs">0</span>
+                </div>
+
+                <!-- Streak Badge -->
+                <div class="bg-white/90 px-2.5 py-0.5 rounded-full border border-rose-200 flex items-center gap-1 shadow-sm">
+                    <span class="text-rose-500 text-xs">🔥</span>
+                    <span id="header-streak" class="font-display font-bold text-rose-700 text-xs">x0</span>
+                </div>
+
+                <!-- Sound Toggle Button -->
+                <button id="btn-sound-toggle" onclick="toggleBGM()" class="bg-white hover:bg-teal-50 p-1 rounded-full border border-teal-200 text-teal-700 shadow-sm transition active:scale-95" title="Tugtog (BGM)">
+                    <span id="sound-icon" class="text-xs sm:text-sm">🔊</span>
+                </button>
+
+                <!-- Aralin Guide Button -->
+                <button onclick="showScreen('screen-aralin')" class="bg-indigo-50 hover:bg-indigo-100 p-1 rounded-full border border-indigo-200 text-indigo-700 shadow-sm transition active:scale-95" title="Aralin & Panuto">
+                    <span class="text-xs sm:text-sm">📖</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 relative overflow-hidden bg-gradient-to-br from-emerald-50/40 via-sky-50/40 to-amber-50/30 p-2 sm:p-3 flex flex-col justify-between">
+
+            <!-- ================= SCREEN 1: MAIN MENU ================= -->
+            <section id="screen-menu" class="h-full flex flex-col items-center justify-between text-center py-1 animate-pop">
+                <div class="space-y-1 max-w-lg">
+                    <span class="bg-amber-100 text-amber-900 font-bold px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs uppercase tracking-wider border border-amber-300 shadow-sm">
+                        Masayang Pag-aaral sa Filipino 6
+                    </span>
+                    <h2 class="font-display text-xl sm:text-3xl font-extrabold text-teal-900 drop-shadow-sm leading-tight">
+                        Gamit ng Pangngalan
+                    </h2>
+                    <p class="text-gray-600 text-[11px] sm:text-xs max-w-md mx-auto leading-tight">
+                        Tukuyin ang gamit ng pangngalan sa pangungusap at hanapin ang buong salita sa palaisipan!
+                    </p>
+                </div>
+
+                <div class="my-1 relative flex items-center justify-center">
+                    <div class="w-20 h-20 sm:w-28 sm:h-28 bg-gradient-to-tr from-teal-200 via-sky-200 to-amber-200 rounded-full flex items-center justify-center shadow-inner border-4 border-white animate-bounce-slow">
+                        <span class="text-3xl sm:text-4xl select-none">🔎</span>
+                    </div>
+                    <div class="absolute -bottom-1 bg-white px-2.5 py-0.5 rounded-full border border-teal-300 shadow-sm text-[10px] font-bold text-teal-800">
+                        Pagsasanay + Word Search Grid
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center gap-2.5 w-full max-w-sm">
+                    <button onclick="showScreen('screen-level-select')" class="w-full cartoon-btn bg-emerald-400 hover:bg-emerald-500 text-teal-950 font-display font-bold text-xs sm:text-sm py-2.5 rounded-xl border border-emerald-200 shadow-md flex items-center justify-center gap-2">
+                        <span>🎮</span> Maglaro Na
+                    </button>
+                    <button onclick="showScreen('screen-aralin')" class="w-full cartoon-btn bg-sky-300 hover:bg-sky-400 text-sky-950 font-display font-bold text-xs sm:text-sm py-2.5 rounded-xl border border-sky-100 shadow-md flex items-center justify-center gap-2">
+                        <span>📘</span> Aralin sa Pangngalan
+                    </button>
+                </div>
+            </section>
+
+            <!-- ================= SCREEN 2: ARALIN REFERENCE ================= -->
+            <section id="screen-aralin" class="hidden h-full flex flex-col justify-between animate-pop">
+                <div class="flex items-center justify-between mb-1">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-lg">📘</span>
+                        <h2 class="font-display font-bold text-xs sm:text-sm text-teal-900">Aralin: 6 na Gamit ng Pangngalan</h2>
+                    </div>
+                    <button onclick="showScreen('screen-menu')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-[10px] font-bold px-2 py-0.5 rounded-lg border border-gray-300 transition">
+                        ◀ Menu
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto pr-1 grid grid-cols-2 gap-2 my-1 text-left">
+                    <div class="bg-emerald-50/90 border border-emerald-200 rounded-xl p-2 shadow-sm">
+                        <span class="bg-emerald-400 text-white font-bold text-[10px] px-1.5 py-0.5 rounded">1. Simuno / Paksa</span>
+                        <p class="text-[10px] text-emerald-950 mt-1">Pangngalang pinag-uusapan sa pangungusap.</p>
+                        <p class="text-[9px] text-gray-600 bg-white/80 p-1 rounded mt-1">Hal: Ang <strong>bata</strong> ay nag-aaral.</p>
+                    </div>
+
+                    <div class="bg-sky-50/90 border border-sky-200 rounded-xl p-2 shadow-sm">
+                        <span class="bg-sky-400 text-white font-bold text-[10px] px-1.5 py-0.5 rounded">2. Kaganapang Pansimuno</span>
+                        <p class="text-[10px] text-sky-950 mt-1">Nasa panaguri na nagpapakilala sa simuno.</p>
+                        <p class="text-[9px] text-gray-600 bg-white/80 p-1 rounded mt-1">Hal: Si Bb. Santos ay <strong>guro</strong>.</p>
+                    </div>
+
+                    <div class="bg-amber-50/90 border border-amber-200 rounded-xl p-2 shadow-sm">
+                        <span class="bg-amber-400 text-white font-bold text-[10px] px-1.5 py-0.5 rounded">3. Pantawag</span>
+                        <p class="text-[10px] text-amber-950 mt-1">Pangngalang tinatawag o kinakausap nang direkta.</p>
+                        <p class="text-[9px] text-gray-600 bg-white/80 p-1 rounded mt-1">Hal: Mano po, <strong>Lola</strong>!</p>
+                    </div>
+
+                    <div class="bg-purple-50/90 border border-purple-200 rounded-xl p-2 shadow-sm">
+                        <span class="bg-purple-400 text-white font-bold text-[10px] px-1.5 py-0.5 rounded">4. Pamuno</span>
+                        <p class="text-[10px] text-purple-950 mt-1">Nagpapaliwanag o nagbibigay-linaw sa simuno.</p>
+                        <p class="text-[9px] text-gray-600 bg-white/80 p-1 rounded mt-1">Hal: Si Rizal, ating <strong>bayani</strong>, ay matalino.</p>
+                    </div>
+
+                    <div class="bg-rose-50/90 border border-rose-200 rounded-xl p-2 shadow-sm">
+                        <span class="bg-rose-400 text-white font-bold text-[10px] px-1.5 py-0.5 rounded">5. Layon ng Pandiwa</span>
+                        <p class="text-[10px] text-rose-950 mt-1">Tumatanggap sa kilos ng pandiwa (Ano?).</p>
+                        <p class="text-[9px] text-gray-600 bg-white/80 p-1 rounded mt-1">Hal: Nagluto si Nanay ng <strong>pansit</strong>.</p>
+                    </div>
+
+                    <div class="bg-teal-50/90 border border-teal-200 rounded-xl p-2 shadow-sm">
+                        <span class="bg-teal-400 text-white font-bold text-[10px] px-1.5 py-0.5 rounded">6. Layon ng Pang-ukol</span>
+                        <p class="text-[10px] text-teal-950 mt-1">Pangngalang kasunod ng pang-ukol (para sa, atbp).</p>
+                        <p class="text-[9px] text-gray-600 bg-white/80 p-1 rounded mt-1">Hal: Regalo para kay <strong>Maria</strong>.</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-center pt-0.5">
+                    <button onclick="showScreen('screen-level-select')" class="cartoon-btn bg-emerald-400 hover:bg-emerald-500 text-teal-950 font-display font-bold px-5 py-1.5 rounded-xl border border-emerald-200 text-xs shadow-md">
+                        Magsimula sa Pagsasanay ▶
+                    </button>
+                </div>
+            </section>
+
+            <!-- ================= SCREEN 3: LEVEL SELECT ================= -->
+            <section id="screen-level-select" class="hidden h-full flex flex-col items-center justify-between text-center py-1 animate-pop">
+                <div>
+                    <h2 class="font-display font-extrabold text-lg sm:text-2xl text-teal-900">Pumili ng Antas ng Laro</h2>
+                    <p class="text-gray-600 text-[11px] sm:text-xs">Bawat tanong ay may kasamang Palaisipan sa Paghahanap ng Salita!</p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 w-full max-w-xl my-auto">
+                    <!-- Level 1 -->
+                    <div onclick="startQuiz(1)" class="cartoon-btn bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-300 rounded-2xl p-2.5 cursor-pointer flex flex-col items-center justify-between text-center group">
+                        <div class="w-10 h-10 rounded-full bg-emerald-400 text-white flex items-center justify-center text-xl font-bold mb-1 shadow-sm group-hover:scale-110 transition">
+                            🌱
+                        </div>
+                        <h3 class="font-display font-bold text-emerald-900 text-xs sm:text-sm">Madali</h3>
+                        <p class="text-[9px] text-emerald-800 my-0.5 leading-tight">Simuno, Pantawag, at Layon ng Pandiwa</p>
+                        <span class="bg-emerald-400 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mt-1">Simulan</span>
+                    </div>
+
+                    <!-- Level 2 -->
+                    <div onclick="startQuiz(2)" class="cartoon-btn bg-sky-100 hover:bg-sky-200 border-2 border-sky-300 rounded-2xl p-2.5 cursor-pointer flex flex-col items-center justify-between text-center group">
+                        <div class="w-10 h-10 rounded-full bg-sky-400 text-white flex items-center justify-center text-xl font-bold mb-1 shadow-sm group-hover:scale-110 transition">
+                            ⭐
+                        </div>
+                        <h3 class="font-display font-bold text-sky-900 text-xs sm:text-sm">Katamtaman</h3>
+                        <p class="text-[9px] text-sky-800 my-0.5 leading-tight">Kaganapan, Pamuno, at Layon ng Pang-ukol</p>
+                        <span class="bg-sky-400 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mt-1">Simulan</span>
+                    </div>
+
+                    <!-- Level 3 -->
+                    <div onclick="startQuiz(3)" class="cartoon-btn bg-purple-100 hover:bg-purple-200 border-2 border-purple-300 rounded-2xl p-2.5 cursor-pointer flex flex-col items-center justify-between text-center group">
+                        <div class="w-10 h-10 rounded-full bg-purple-400 text-white flex items-center justify-center text-xl font-bold mb-1 shadow-sm group-hover:scale-110 transition">
+                            🏆
+                        </div>
+                        <h3 class="font-display font-bold text-purple-900 text-xs sm:text-sm">Mahirap</h3>
+                        <p class="text-[9px] text-purple-800 my-0.5 leading-tight">Halo-halong 6 na Gamit ng Pangngalan (Mababang-haba na Salita!)</p>
+                        <span class="bg-purple-400 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mt-1">Simulan</span>
+                    </div>
+                </div>
+
+                <button onclick="showScreen('screen-menu')" class="text-gray-500 hover:text-gray-700 text-[10px] font-bold underline">
+                    ◀ Bumalik sa Pangunahing Menu
+                </button>
+            </section>
+
+            <!-- ================= SCREEN 4: PART 1 QUIZ QUESTION ================= -->
+            <section id="screen-game" class="hidden h-full flex flex-col justify-between animate-pop">
+                <!-- Header Status -->
+                <div class="flex items-center justify-between gap-2 flex-none">
+                    <div class="flex items-center gap-1.5">
+                        <span id="game-level-badge" class="bg-amber-300 text-amber-900 font-display font-bold text-[10px] px-2.5 py-0.5 rounded-full border border-amber-400 shadow-sm">
+                            Antas 1: Madali
+                        </span>
+                        <span class="bg-teal-100 text-teal-800 font-bold text-[10px] px-2 py-0.5 rounded-full border border-teal-200">
+                            Bahagi 1: Pagsusuri
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2 flex-1 max-w-xs mx-2">
+                        <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden border border-white shadow-inner">
+                            <div id="quiz-progress-bar" class="bg-gradient-to-r from-teal-400 to-emerald-400 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                        <span id="quiz-question-num" class="font-display font-bold text-[10px] text-teal-900 whitespace-nowrap">1/5</span>
+                    </div>
+                </div>
+
+                <!-- Main Question Card -->
+                <div class="bg-white/95 border-2 border-teal-100 rounded-2xl p-3 sm:p-4 shadow-sm my-auto text-center flex flex-col items-center justify-center flex-1 min-h-0">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-teal-600 mb-0.5" id="question-category-tag">Tanong</span>
+                    <h3 id="question-text" class="font-display font-extrabold text-sm sm:text-lg text-gray-800 leading-snug">
+                        <!-- Dynamic Question Text -->
+                    </h3>
+                </div>
+
+                <!-- 4 Choices Options Grid -->
+                <div id="options-container" class="grid grid-cols-2 gap-2 my-1 flex-none">
+                    <!-- Dynamic Options -->
+                </div>
+
+                <!-- Status Footer -->
+                <div class="flex items-center justify-between text-[10px] text-gray-500 flex-none pt-0.5">
+                    <span id="streak-indicator-text" class="font-semibold text-rose-500">🔥 Streak Bonus: +0</span>
+                    <span class="text-purple-700 font-semibold flex items-center gap-1">
+                        ✨ Pagkatapos sumagot, papuntang <strong>Palaisipan sa Paghahanap ng Salita</strong>!
+                    </span>
+                </div>
+            </section>
+
+            <!-- ================= SCREEN 5: PART 2 WORD SEARCH GRID (16:9 SCALED) ================= -->
+            <section id="screen-wordsearch" class="hidden h-full flex flex-col justify-between animate-pop overflow-hidden">
+                <!-- Header -->
+                <div class="flex items-center justify-between border-b border-purple-200 pb-1 flex-none">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-lg">🔍</span>
+                        <div>
+                            <h2 class="font-display font-bold text-xs sm:text-sm text-purple-900 leading-none">
+                                Palaisipan sa Paghahanap ng Salita (Aytem <span id="ws-item-num">1</span>)
+                            </h2>
+                            <p class="text-[9px] text-purple-700">Hanapin at buoin ang nakatagong pangngalan!</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-1.5">
+                        <!-- Hint Button -->
+                        <button onclick="useWordSearchHint()" class="cartoon-btn bg-amber-300 hover:bg-amber-400 text-amber-950 font-bold text-[10px] px-2.5 py-1 rounded-lg flex items-center gap-1">
+                            <span>💡</span> Pahiwatig (-20 pts)
+                        </button>
+                        <!-- Reset Button -->
+                        <button onclick="clearWordSearchSelection()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-[10px] font-bold px-2 py-1 rounded-lg border border-gray-300">
+                            🔄 Ulitin
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Target Noun Banner -->
+                <div class="bg-gradient-to-r from-purple-100 via-pink-100 to-amber-100 border border-purple-200 rounded-xl px-3 py-1 flex items-center justify-between shadow-sm my-1 flex-none">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-bold text-purple-900">🎯 Hanaping Pangngalan:</span>
+                        <span id="target-noun-display" class="font-display font-extrabold text-xs sm:text-sm text-purple-950 tracking-wider bg-white px-2 py-0.5 rounded-md border border-purple-300 shadow-inner">
+                            ????
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-bold text-gray-600">Nabuong Titik:</span>
+                        <div id="ws-selection-display" class="font-display font-bold text-xs sm:text-sm text-pink-700 bg-white px-2.5 py-0.5 rounded-md border border-pink-200 min-w-[80px] text-center tracking-wider">
+                            ---
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WORD SEARCH DYNAMIC GRID CONTAINER (GUARANTEED NO SCROLL OR OVERFLOW) -->
+                <div class="flex-1 flex items-center justify-center min-h-0 min-w-0 p-1 overflow-hidden my-auto">
+                    <div id="ws-grid-matrix">
+                        <!-- Dynamic Matrix -->
+                    </div>
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="flex items-center justify-between flex-none pt-1">
+                    <p class="text-[9px] text-purple-800 font-medium italic">
+                        💡 Pindutin ang mga titik sa direksyong pahiga, pababa, o patagilid.
+                    </p>
+                    <button onclick="checkWordSearchMatch()" class="cartoon-btn bg-emerald-400 hover:bg-emerald-500 text-teal-950 font-display font-bold text-xs px-4 py-1.5 rounded-xl border border-emerald-200 shadow-md flex items-center gap-1">
+                        <span>✔</span> Kumpirmahin ang Salita
+                    </button>
+                </div>
+            </section>
+
+            <!-- ================= SCREEN 6: RESULTS SUMMARY ================= -->
+            <section id="screen-results" class="hidden h-full flex flex-col items-center justify-between text-center py-1 animate-pop">
+                <div>
+                    <div id="results-stars" class="flex justify-center gap-1.5 text-2xl sm:text-3xl my-0.5">
+                        <span>⭐</span>
+                        <span>⭐</span>
+                        <span>⭐</span>
+                    </div>
+                    <h2 class="font-display font-extrabold text-lg sm:text-2xl text-teal-900">Magaling! Natapos Mo Ang Antas!</h2>
+                    <p id="results-badge" class="bg-amber-100 text-amber-900 font-bold px-2.5 py-0.5 rounded-full text-[10px] inline-block border border-amber-300 shadow-sm mt-0.5">
+                        🏆 Hari ng Pangngalan at Palaisipan
+                    </p>
+                </div>
+
+                <!-- Final Scores Card -->
+                <div class="bg-white/95 border-2 border-teal-200 rounded-2xl p-3 max-w-sm w-full shadow-md my-auto space-y-1.5">
+                    <div class="flex justify-between items-center text-xs border-b pb-1 text-gray-600">
+                        <span>Kabuuang Iskor:</span>
+                        <span id="results-score" class="font-display font-bold text-base text-amber-600">0</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs border-b pb-1 text-gray-600">
+                        <span>Wastong Sagot sa Pagsusuri:</span>
+                        <span id="results-accuracy" class="font-display font-bold text-emerald-600">0%</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs text-gray-600">
+                        <span>Pinakamataas na Streak:</span>
+                        <span id="results-streak" class="font-display font-bold text-rose-500">x0</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-2 w-full max-w-sm">
+                    <button onclick="showScreen('screen-level-select')" class="w-full cartoon-btn bg-teal-400 hover:bg-teal-500 text-teal-950 font-display font-bold py-2 rounded-xl border border-teal-200 text-xs shadow-md">
+                        🔄 Pumili ng ibang Antas
+                    </button>
+                    <button onclick="showScreen('screen-menu')" class="w-full cartoon-btn bg-purple-400 hover:bg-purple-500 text-white font-display font-bold py-2 rounded-xl border border-purple-200 text-xs shadow-md">
+                        🏠 Pangunahing Menu
+                    </button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- ================= MODAL: FEEDBACK POPUP ================= -->
+        <div id="modal-feedback" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+            <div id="modal-card" class="bg-white rounded-2xl max-w-md w-full p-4 text-center animate-pop border-4 border-white shadow-2xl">
+                <div id="modal-icon" class="w-12 h-12 rounded-full flex items-center justify-center text-xl mx-auto mb-1 shadow-inner">
+                    ✨
+                </div>
+                <h3 id="modal-title" class="font-display font-extrabold text-base text-teal-900 mb-0.5">Tama ang iyong sagot!</h3>
+                <div id="modal-explanation" class="text-xs text-gray-700 bg-teal-50/90 p-2.5 rounded-xl border border-teal-100 my-2 leading-relaxed text-left">
+                    Paliwanag...
+                </div>
+                <button id="modal-continue-btn" onclick="closeModalToWordSearch()" class="w-full cartoon-btn bg-purple-500 hover:bg-purple-600 text-white font-display font-bold py-2 rounded-xl border border-purple-300 text-xs shadow-md flex items-center justify-center gap-1">
+                    <span>🔍</span> Ipagpatuloy sa Word Search Grid ▶
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Web Audio Synthesizer Engine
+        let audioCtx = null;
+        let isMuted = false;
+        let bgmInterval = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSFX(type) {
+            if (isMuted) return;
+            initAudio();
+
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.08);
+                osc.frequency.setValueAtTime(783.99, now + 0.16);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(130, now + 0.22);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.04);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                osc.start(now);
+                osc.stop(now + 0.04);
+            } else if (type === 'tile') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(750, now);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'found') {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const noteOsc = audioCtx.createOscillator();
+                    const noteGain = audioCtx.createGain();
+                    noteOsc.type = 'triangle';
+                    noteOsc.frequency.setValueAtTime(freq, now + i * 0.08);
+                    noteOsc.connect(noteGain);
+                    noteGain.connect(audioCtx.destination);
+                    noteGain.gain.setValueAtTime(0.18, now + i * 0.08);
+                    noteGain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.2);
+                    noteOsc.start(now + i * 0.08);
+                    noteOsc.stop(now + i * 0.08 + 0.2);
+                });
+            } else if (type === 'fanfare') {
+                const notes = [440, 554.37, 659.25, 880];
+                notes.forEach((freq, i) => {
+                    const noteOsc = audioCtx.createOscillator();
+                    const noteGain = audioCtx.createGain();
+                    noteOsc.type = 'triangle';
+                    noteOsc.frequency.setValueAtTime(freq, now + i * 0.1);
+                    noteOsc.connect(noteGain);
+                    noteGain.connect(audioCtx.destination);
+                    noteGain.gain.setValueAtTime(0.2, now + i * 0.1);
+                    noteGain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.25);
+                    noteOsc.start(now + i * 0.1);
+                    noteOsc.stop(now + i * 0.1 + 0.25);
+                });
+            }
+        }
+
+        function toggleBGM() {
+            initAudio();
+            isMuted = !isMuted;
+            const btnIcon = document.getElementById('sound-icon');
+
+            if (isMuted) {
+                btnIcon.textContent = '🔈';
+                stopBGMLoop();
+            } else {
+                btnIcon.textContent = '🔊';
+                startBGMLoop();
+            }
+        }
+
+        function startBGMLoop() {
+            if (bgmInterval) return;
+            const melody = [261.63, 329.63, 392.00, 329.63, 349.23, 440.00, 392.00, 329.63];
+            let index = 0;
+
+            bgmInterval = setInterval(() => {
+                if (isMuted || !audioCtx) return;
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(melody[index], now);
+                gain.gain.setValueAtTime(0.03, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+                index = (index + 1) % melody.length;
+            }, 450);
+        }
+
+        function stopBGMLoop() {
+            if (bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+        }
+
+        // Quiz Database with Grammar Questions & Target Nouns
+        const quizDatabase = {
+            1: [ // Level 1: Easy
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Layon ng Pandiwa",
+                    question: "Nagluto si Inay ng masarap na <u class='text-teal-600 font-extrabold decoration-teal-400'>PANSIT</u>.",
+                    options: ["Simuno", "Layon ng Pandiwa", "Pantawag", "Pamuno"],
+                    answer: 1,
+                    explanation: "Ang <strong>PANSIT</strong> ang tumatanggap sa kilos ng pagluluto (Nagluto ng ano? -> Pansit). Ito ay naglilingkod bilang <strong>Layon ng Pandiwa</strong>.",
+                    targetNoun: "PANSIT",
+                    baseGridSize: 6
+                },
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Simuno / Paksa",
+                    question: "Ang mabait na <u class='text-teal-600 font-extrabold decoration-teal-400'>BATA</u> ay nag-aaral nang mabuti.",
+                    options: ["Kaganapang Pansimuno", "Simuno", "Pantawag", "Layon ng Pang-ukol"],
+                    answer: 1,
+                    explanation: "Ang <strong>BATA</strong> ang paksang pinag-uusapan sa pangungusap, kaya ito ay naglilingkod bilang <strong>Simuno</strong>.",
+                    targetNoun: "BATA",
+                    baseGridSize: 6
+                },
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Pantawag",
+                    question: "Mano po, <u class='text-teal-600 font-extrabold decoration-teal-400'>LOLA</u>!",
+                    options: ["Simuno", "Pantawag", "Pamuno", "Layon ng Pandiwa"],
+                    answer: 1,
+                    explanation: "Ang <strong>LOLA</strong> ay direktang tinatawag o kinakausap sa pahayag, kaya ito ay naglilingkod bilang <strong>Pantawag</strong>.",
+                    targetNoun: "LOLA",
+                    baseGridSize: 6
+                },
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Layon ng Pandiwa",
+                    question: "Uminom ng malamig na <u class='text-teal-600 font-extrabold decoration-teal-400'>TUBIG</u> si Mark.",
+                    options: ["Simuno", "Layon ng Pandiwa", "Pantawag", "Pamuno"],
+                    answer: 1,
+                    explanation: "Ang <strong>TUBIG</strong> ang tumatanggap ng kilos ng pag-inom (Uminom ng ano? -> Tubig), kaya ito ay <strong>Layon ng Pandiwa</strong>.",
+                    targetNoun: "TUBIG",
+                    baseGridSize: 6
+                },
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Simuno / Paksa",
+                    question: "Ang malawak na <u class='text-teal-600 font-extrabold decoration-teal-400'>DAGAT</u> ay matatagpuan sa Batangas.",
+                    options: ["Simuno", "Layon ng Pang-ukol", "Pamuno", "Pantawag"],
+                    answer: 0,
+                    explanation: "Ang <strong>DAGAT</strong> ang pangunahing pinag-uusapan sa pangungusap. Ito ay naglilingkod bilang <strong>Simuno</strong>.",
+                    targetNoun: "DAGAT",
+                    baseGridSize: 6
+                }
+            ],
+            2: [ // Level 2: Medium
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Kaganapang Pansimuno",
+                    question: "Si Bb. Santos ay isang mabait na <u class='text-teal-600 font-extrabold decoration-teal-400'>GURO</u>.",
+                    options: ["Kaganapang Pansimuno", "Layon ng Pang-ukol", "Pantawag", "Simuno"],
+                    answer: 0,
+                    explanation: "Ang <strong>GURO</strong> ay nasa panaguri at nagpapakilala sa simunong 'Bb. Santos'. Ito ay <strong>Kaganapang Pansimuno</strong>.",
+                    targetNoun: "GURO",
+                    baseGridSize: 7
+                },
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Pamuno",
+                    question: "Si Jose Rizal, ang ating <u class='text-teal-600 font-extrabold decoration-teal-400'>BAYANI</u>, ay matalino.",
+                    options: ["Pamuno", "Simuno", "Layon ng Pang-ukol", "Pantawag"],
+                    answer: 0,
+                    explanation: "Ang <strong>BAYANI</strong> ay nagbibigay ng karagdagang impormasyon at nagpapaliwanag ukol sa simunong Jose Rizal, kaya ito ay <strong>Pamuno</strong>.",
+                    targetNoun: "BAYANI",
+                    baseGridSize: 7
+                },
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Layon ng Pang-ukol",
+                    question: "Ang magandang regalo ay para kay <u class='text-teal-600 font-extrabold decoration-teal-400'>MARIA</u>.",
+                    options: ["Layon ng Pandiwa", "Layon ng Pang-ukol", "Simuno", "Kaganapang Pansimuno"],
+                    answer: 1,
+                    explanation: "Ang <strong>MARIA</strong> ay kasunod ng pang-ukol na 'para kay', kaya ito ay naglilingkod bilang <strong>Layon ng Pang-ukol</strong>.",
+                    targetNoun: "MARIA",
+                    baseGridSize: 7
+                },
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Kaganapang Pansimuno",
+                    question: "Si Ginoong Ramos ay naging mahusay na <u class='text-teal-600 font-extrabold decoration-teal-400'>PANGULO</u>.",
+                    options: ["Kaganapang Pansimuno", "Pamuno", "Pantawag", "Simuno"],
+                    answer: 0,
+                    explanation: "Ang <strong>PANGULO</strong> ay nasa panaguri na nagpapakilala sa simunong Ginoong Ramos, kaya ito ay <strong>Kaganapang Pansimuno</strong>.",
+                    targetNoun: "PANGULO",
+                    baseGridSize: 7
+                },
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Layon ng Pang-ukol",
+                    question: "Nagluto si Ate para sa aking <u class='text-teal-600 font-extrabold decoration-teal-400'>KAPATID</u>.",
+                    options: ["Layon ng Pandiwa", "Layon ng Pang-ukol", "Simuno", "Pamuno"],
+                    answer: 1,
+                    explanation: "Ang <strong>KAPATID</strong> ay kasunod ng pang-ukol na 'para sa', kaya ito ay <strong>Layon ng Pang-ukol</strong>.",
+                    targetNoun: "KAPATID",
+                    baseGridSize: 7
+                }
+            ],
+            3: [ // Level 3: Hard (Guaranteed support for long nouns like KALIKASAN)
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Layon ng Pang-ukol",
+                    question: "Tungkol sa ating <u class='text-teal-600 font-extrabold decoration-teal-400'>KALIKASAN</u> ang kaniyang talumpati sa paaralan.",
+                    options: ["Layon ng Pang-ukol", "Layon ng Pandiwa", "Pamuno", "Pantawag"],
+                    answer: 0,
+                    explanation: "Ang <strong>KALIKASAN</strong> (9 na titik: K-A-L-I-K-A-S-A-N) ay kasunod ng pang-ukol na 'Tungkol sa', kaya ito ay <strong>Layon ng Pang-ukol</strong>.",
+                    targetNoun: "KALIKASAN",
+                    baseGridSize: 9
+                },
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Simuno / Paksa",
+                    question: "Ang aming <u class='text-teal-600 font-extrabold decoration-teal-400'>PAARALAN</u> ay malinis at maayos.",
+                    options: ["Simuno", "Layon ng Pandiwa", "Pantawag", "Pamuno"],
+                    answer: 0,
+                    explanation: "Ang <strong>PAARALAN</strong> ang paksang pinag-uusapan sa pangungusap, kaya ito ay naglilingkod bilang <strong>Simuno</strong>.",
+                    targetNoun: "PAARALAN",
+                    baseGridSize: 8
+                },
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Layon ng Pandiwa",
+                    question: "Itaas natin ang pambansang <u class='text-teal-600 font-extrabold decoration-teal-400'>WATAWAT</u> nang may paggalang.",
+                    options: ["Layon ng Pang-ukol", "Layon ng Pandiwa", "Pamuno", "Simuno"],
+                    answer: 1,
+                    explanation: "Ang <strong>WATAWAT</strong> ang tumatanggap sa kilos na itaas (Itaas ang ano? -> Watawat). Ito ay <strong>Layon ng Pandiwa</strong>.",
+                    targetNoun: "WATAWAT",
+                    baseGridSize: 8
+                },
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Pamuno",
+                    question: "Ang Maynila, ang <u class='text-teal-600 font-extrabold decoration-teal-400'>KAPITAL</u> ng Pilipinas, ay maunlad.",
+                    options: ["Pamuno", "Pantawag", "Simuno", "Layon ng Pandiwa"],
+                    answer: 0,
+                    explanation: "Ang <strong>KAPITAL</strong> ay nagbibigay ng karagdagang impormasyon sa simunong Maynila, kaya ito ay <strong>Pamuno</strong>.",
+                    targetNoun: "KAPITAL",
+                    baseGridSize: 8
+                },
+                {
+                    part: "Bahagi 1: Pagsusuri",
+                    category: "Layon ng Pandiwa",
+                    question: "Binigyan ng mataas na <u class='text-teal-600 font-extrabold decoration-teal-400'>PARANGAL</u> ang huwarang mag-aaral.",
+                    options: ["Layon ng Pandiwa", "Simuno", "Kaganapang Pansimuno", "Pantawag"],
+                    answer: 0,
+                    explanation: "Ang <strong>PARANGAL</strong> ang tumatanggap sa kilos na binigyan (Binigyan ng ano? -> Parangal), kaya ito ay <strong>Layon ng Pandiwa</strong>.",
+                    targetNoun: "PARANGAL",
+                    baseGridSize: 8
+                }
+            ]
+        };
+
+        // Game State Variables
+        let currentLevel = 1;
+        let currentQuestionIdx = 0;
+        let score = 0;
+        let streak = 0;
+        let maxStreak = 0;
+        let correctAnswersCount = 0;
+
+        // Word Search Grid Variables
+        let gridMatrix = [];
+        let targetWordCoords = [];
+        let selectedPath = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initConfetti();
+            updateHeaderStats();
+        });
+
+        function showScreen(screenId) {
+            playSFX('click');
+            const screens = ['screen-menu', 'screen-aralin', 'screen-level-select', 'screen-game', 'screen-wordsearch', 'screen-results'];
+            screens.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function startQuiz(level) {
+            currentLevel = level;
+            currentQuestionIdx = 0;
+            score = 0;
+            streak = 0;
+            maxStreak = 0;
+            correctAnswersCount = 0;
+            updateHeaderStats();
+
+            showScreen('screen-game');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const questions = quizDatabase[currentLevel];
+            const q = questions[currentQuestionIdx];
+
+            document.getElementById('game-level-badge').textContent = `Antas ${currentLevel}: ${currentLevel === 1 ? 'Madali' : currentLevel === 2 ? 'Katamtaman' : 'Mahirap'}`;
+            document.getElementById('question-category-tag').textContent = q.category;
+            document.getElementById('quiz-question-num').textContent = `${currentQuestionIdx + 1}/${questions.length}`;
+
+            const progressPct = ((currentQuestionIdx) / questions.length) * 100;
+            document.getElementById('quiz-progress-bar').style.width = `${progressPct}%`;
+
+            document.getElementById('question-text').innerHTML = q.question;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const optionColors = [
+                'bg-emerald-100 border-emerald-300 hover:bg-emerald-200 text-emerald-950',
+                'bg-sky-100 border-sky-300 hover:bg-sky-200 text-sky-950',
+                'bg-amber-100 border-amber-300 hover:bg-amber-200 text-amber-950',
+                'bg-purple-100 border-purple-300 hover:bg-purple-200 text-purple-950'
+            ];
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `cartoon-btn ${optionColors[idx % optionColors.length]} border-2 p-2.5 rounded-xl font-display font-bold text-xs text-left shadow-sm flex items-center justify-between transition group`;
+                btn.onclick = () => submitPart1Answer(idx);
+
+                btn.innerHTML = `
+                    <span>${opt}</span>
+                    <span class="w-4 h-4 rounded-full bg-white/80 border border-gray-300 flex items-center justify-center text-[9px] font-bold group-hover:scale-110 transition">
+                        ${String.fromCharCode(65 + idx)}
+                    </span>
+                `;
+                container.appendChild(btn);
+            });
+
+            document.getElementById('streak-indicator-text').textContent = `🔥 Streak Bonus: +${streak * 20}`;
+        }
+
+        function submitPart1Answer(chosenIdx) {
+            const questions = quizDatabase[currentLevel];
+            const q = questions[currentQuestionIdx];
+            const isCorrect = (chosenIdx === q.answer);
+
+            if (isCorrect) {
+                playSFX('correct');
+                streak++;
+                if (streak > maxStreak) maxStreak = streak;
+                correctAnswersCount++;
+                const pointsEarned = 100 + (streak * 20);
+                score += pointsEarned;
+
+                showFeedbackModal(
+                    true,
+                    `🎉 Tama! (+${pointsEarned} Puntos)`,
+                    q.explanation
+                );
+            } else {
+                playSFX('wrong');
+                streak = 0;
+
+                showFeedbackModal(
+                    false,
+                    `❌ Naku! Hindi Ito Tumpak`,
+                    q.explanation
+                );
+            }
+
+            updateHeaderStats();
+        }
+
+        function showFeedbackModal(isCorrect, title, explanation) {
+            const modal = document.getElementById('modal-feedback');
+            const icon = document.getElementById('modal-icon');
+            const titleEl = document.getElementById('modal-title');
+            const expEl = document.getElementById('modal-explanation');
+
+            if (isCorrect) {
+                icon.className = "w-12 h-12 rounded-full flex items-center justify-center text-xl mx-auto mb-1 shadow-inner bg-emerald-100 text-emerald-600 border-2 border-emerald-300";
+                icon.textContent = "🌟";
+                titleEl.className = "font-display font-extrabold text-base text-emerald-800 mb-0.5";
+                expEl.className = "text-xs text-emerald-950 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 my-2 leading-relaxed text-left";
+            } else {
+                icon.className = "w-12 h-12 rounded-full flex items-center justify-center text-xl mx-auto mb-1 shadow-inner bg-rose-100 text-rose-600 border-2 border-rose-300";
+                icon.textContent = "💡";
+                titleEl.className = "font-display font-extrabold text-base text-rose-800 mb-0.5";
+                expEl.className = "text-xs text-rose-950 bg-rose-50 p-2.5 rounded-xl border border-rose-200 my-2 leading-relaxed text-left";
+            }
+
+            titleEl.textContent = title;
+            expEl.innerHTML = explanation;
+            modal.classList.remove('hidden');
+        }
+
+        function closeModalToWordSearch() {
+            document.getElementById('modal-feedback').classList.add('hidden');
+            setupAndShowWordSearch();
+        }
+
+        function setupAndShowWordSearch() {
+            const questions = quizDatabase[currentLevel];
+            const q = questions[currentQuestionIdx];
+            const target = q.targetNoun.trim().toUpperCase();
+
+            // CRITICAL FIX: Ensure grid dimension is at least target.length + 1 so words like "KALIKASAN" (9 letters) fit 100%
+            const minSizeNeeded = target.length;
+            const size = Math.max(q.baseGridSize || 6, minSizeNeeded);
+
+            document.getElementById('ws-item-num').textContent = `${currentQuestionIdx + 1}/${questions.length}`;
+            document.getElementById('target-noun-display').textContent = target;
+            document.getElementById('ws-selection-display').textContent = '---';
+
+            // 1. Initialize Empty Matrix with dynamic size
+            gridMatrix = Array(size).fill(null).map(() => Array(size).fill(''));
+            targetWordCoords = [];
+            selectedPath = [];
+
+            // 2. Select valid directions
+            let directions = [
+                { r: 0, c: 1 },  // Horizontal Right
+                { r: 1, c: 0 }   // Vertical Down
+            ];
+            if (currentLevel >= 2) {
+                directions.push({ r: 1, c: 1 });  // Diagonal Down-Right
+                directions.push({ r: 1, c: -1 }); // Diagonal Down-Left
+            }
+            if (currentLevel >= 3) {
+                directions.push({ r: 0, c: -1 }); // Horizontal Left
+                directions.push({ r: -1, c: 0 }); // Vertical Up
+            }
+
+            // 3. Attempt random placement within bounds
+            let placed = false;
+            let attempts = 0;
+
+            while (!placed && attempts < 500) {
+                attempts++;
+                const dir = directions[Math.floor(Math.random() * directions.length)];
+                
+                // Calculate allowed starting bounds so word NEVER gets cut off or out of bounds
+                const minR = dir.r < 0 ? target.length - 1 : 0;
+                const maxR = dir.r > 0 ? size - target.length : size - 1;
+                
+                const minC = dir.c < 0 ? target.length - 1 : 0;
+                const maxC = dir.c > 0 ? size - target.length : size - 1;
+
+                if (maxR >= minR && maxC >= minC) {
+                    const startR = minR + Math.floor(Math.random() * (maxR - minR + 1));
+                    const startC = minC + Math.floor(Math.random() * (maxC - minC + 1));
+
+                    let canPlace = true;
+                    for (let i = 0; i < target.length; i++) {
+                        const r = startR + dir.r * i;
+                        const c = startC + dir.c * i;
+                        if (gridMatrix[r][c] !== '' && gridMatrix[r][c] !== target[i]) {
+                            canPlace = false;
+                            break;
+                        }
+                    }
+
+                    if (canPlace) {
+                        for (let i = 0; i < target.length; i++) {
+                            const r = startR + dir.r * i;
+                            const c = startC + dir.c * i;
+                            gridMatrix[r][c] = target[i];
+                            targetWordCoords.push({ r, c });
+                        }
+                        placed = true;
+                    }
+                }
+            }
+
+            // Fallback placement guaranteed inside bounds
+            if (!placed) {
+                targetWordCoords = [];
+                const targetRow = 0;
+                for (let i = 0; i < target.length; i++) {
+                    gridMatrix[targetRow][i] = target[i];
+                    targetWordCoords.push({ r: targetRow, c: i });
+                }
+            }
+
+            // 4. Fill distractor letters into remaining cells
+            const distractors = ['A','B','K','D','E','G','H','I','L','M','N','O','P','R','S','T','U','W','Y'];
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    if (gridMatrix[r][c] === '') {
+                        gridMatrix[r][c] = distractors[Math.floor(Math.random() * distractors.length)];
+                    }
+                }
+            }
+
+            // 5. Render CSS Grid DOM
+            renderWordSearchGridDOM();
+            showScreen('screen-wordsearch');
+        }
+
+        function renderWordSearchGridDOM() {
+            const container = document.getElementById('ws-grid-matrix');
+            container.innerHTML = '';
+            const size = gridMatrix.length;
+
+            // Dynamically balance CSS grid columns and cell sizes
+            container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            container.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+
+            // Dynamically compute fluid tile font size based on size count to prevent overflow
+            const fontScale = size > 8 ? '0.6rem' : size > 6 ? '0.75rem' : '0.9rem';
+
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    const tile = document.createElement('div');
+                    tile.id = `ws-cell-${r}-${c}`;
+                    tile.dataset.row = r;
+                    tile.dataset.col = c;
+                    tile.className = 'ws-tile';
+                    tile.style.fontSize = fontScale;
+                    tile.textContent = gridMatrix[r][c];
+
+                    tile.onclick = () => handleTileClick(r, c);
+
+                    container.appendChild(tile);
+                }
+            }
+        }
+
+        function handleTileClick(r, c) {
+            playSFX('tile');
+
+            const indexInPath = selectedPath.findIndex(p => p.r === r && p.c === c);
+
+            if (indexInPath >= 0) {
+                // Truncate path if user re-clicks previous tile
+                selectedPath = selectedPath.slice(0, indexInPath + 1);
+            } else {
+                if (selectedPath.length > 0) {
+                    const last = selectedPath[selectedPath.length - 1];
+                    const dr = Math.abs(r - last.r);
+                    const dc = Math.abs(c - last.c);
+
+                    if (dr <= 1 && dc <= 1) {
+                        selectedPath.push({ r, c });
+                    } else {
+                        // Start new path if not adjacent
+                        selectedPath = [{ r, c }];
+                    }
+                } else {
+                    selectedPath.push({ r, c });
+                }
+            }
+
+            updateSelectionVisuals();
+        }
+
+        function updateSelectionVisuals() {
+            const size = gridMatrix.length;
+
+            // Reset cell colors
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    const el = document.getElementById(`ws-cell-${r}-${c}`);
+                    if (el) {
+                        el.style.backgroundColor = '#FFFFFF';
+                        el.style.color = '#4C1D95';
+                        el.style.borderColor = '#C4B5FD';
+                    }
+                }
+            }
+
+            // Highlight selected path
+            let formedWord = '';
+            selectedPath.forEach((p) => {
+                formedWord += gridMatrix[p.r][p.c];
+                const el = document.getElementById(`ws-cell-${p.r}-${p.c}`);
+                if (el) {
+                    el.style.backgroundColor = '#F472B6';
+                    el.style.color = '#FFFFFF';
+                    el.style.borderColor = '#DB2777';
+                }
+            });
+
+            document.getElementById('ws-selection-display').textContent = formedWord || '---';
+        }
+
+        function clearWordSearchSelection() {
+            playSFX('click');
+            selectedPath = [];
+            updateSelectionVisuals();
+        }
+
+        function useWordSearchHint() {
+            if (score < 20) {
+                alert('💡 Kulang ang iyong puntos para sa Pahiwatig! (-20 puntos ang kailangan)');
+                return;
+            }
+
+            score -= 20;
+            updateHeaderStats();
+            playSFX('correct');
+
+            if (targetWordCoords.length > 0) {
+                const first = targetWordCoords[0];
+                selectedPath = [first];
+                updateSelectionVisuals();
+
+                const hintEl = document.getElementById(`ws-cell-${first.r}-${first.c}`);
+                if (hintEl) {
+                    hintEl.classList.add('animate-bounce');
+                    setTimeout(() => hintEl.classList.remove('animate-bounce'), 1000);
+                }
+            }
+        }
+
+        function checkWordSearchMatch() {
+            const questions = quizDatabase[currentLevel];
+            const q = questions[currentQuestionIdx];
+            const target = q.targetNoun.trim().toUpperCase();
+
+            let currentWord = selectedPath.map(p => gridMatrix[p.r][p.c]).join('');
+            let reverseWord = currentWord.split('').reverse().join('');
+
+            if (currentWord === target || reverseWord === target) {
+                playSFX('found');
+                score += 50;
+                updateHeaderStats();
+
+                // Highlight correct path in emerald green
+                selectedPath.forEach((p) => {
+                    const el = document.getElementById(`ws-cell-${p.r}-${p.c}`);
+                    if (el) {
+                        el.style.backgroundColor = '#34D399';
+                        el.style.color = '#FFFFFF';
+                        el.style.borderColor = '#059669';
+                    }
+                });
+
+                setTimeout(() => {
+                    currentQuestionIdx++;
+                    if (currentQuestionIdx < questions.length) {
+                        showScreen('screen-game');
+                        renderQuestion();
+                    } else {
+                        finishQuizLevel();
+                    }
+                }, 750);
+
+            } else {
+                playSFX('wrong');
+                alert(`💡 Hindi tumpak ang nabuong salita ("${currentWord || 'Wala'}"). Ang hinahanap na salita ay "${target}" (${target.length} na titik). Sumubok ulit!`);
+            }
+        }
+
+        function finishQuizLevel() {
+            playSFX('fanfare');
+            triggerConfetti();
+
+            const questions = quizDatabase[currentLevel];
+            const accuracyPct = Math.round((correctAnswersCount / questions.length) * 100);
+
+            document.getElementById('results-score').textContent = score;
+            document.getElementById('results-accuracy').textContent = `${accuracyPct}%`;
+            document.getElementById('results-streak').textContent = `x${maxStreak}`;
+
+            const badgeEl = document.getElementById('results-badge');
+            if (accuracyPct === 100) {
+                badgeEl.textContent = "🏆 Hari ng Pangngalan at Palaisipan (100% Perfect!)";
+            } else if (accuracyPct >= 70) {
+                badgeEl.textContent = "🌟 Dalubhasa sa Gamit ng Pangngalan";
+            } else {
+                badgeEl.textContent = "🌱 Masipag na Mag-aaral sa Filipino";
+            }
+
+            showScreen('screen-results');
+        }
+
+        function updateHeaderStats() {
+            document.getElementById('header-score').textContent = score;
+            document.getElementById('header-streak').textContent = `x${streak}`;
+        }
+
+        let confettiCtx = null;
+        let confettiParticles = [];
+
+        function initConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            confettiCtx = canvas.getContext('2d');
+
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        }
+
+        function triggerConfetti() {
+            const colors = ['#34D399', '#60A5FA', '#FBBF24', '#F472B6', '#A78BFA'];
+            confettiParticles = [];
+
+            for (let i = 0; i < 70; i++) {
+                confettiParticles.push({
+                    x: Math.random() * window.innerWidth,
+                    y: -10,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: Math.random() * 4 + 2,
+                    rot: Math.random() * 360
+                });
+            }
+
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            if (confettiParticles.length === 0) return;
+
+            confettiCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+            confettiParticles.forEach((p, idx) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.rot += 4;
+
+                confettiCtx.save();
+                confettiCtx.translate(p.x, p.y);
+                confettiCtx.rotate((p.rot * Math.PI) / 180);
+                confettiCtx.fillStyle = p.color;
+                confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                confettiCtx.restore();
+
+                if (p.y > window.innerHeight) {
+                    confettiParticles.splice(idx, 1);
+                }
+            });
+
+            if (confettiParticles.length > 0) {
+                requestAnimationFrame(animateConfetti);
+            }
+        }
+    </script>
+</body>
+</html>
